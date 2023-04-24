@@ -30,6 +30,11 @@ The Indonesian News Article Scraper is a Python web scraping application that is
 8. Once the scraping process is complete, the resulting dataframe containing information on the publication date, title, text, URL, and publication name will be displayed.
 9. If you wish to download the data as a CSV, click on the "Export to CSV" button located below the resulting dataframe.
 
+## Demo
+
+You can play around with the demo here: https://mwhidayat-indonesian-news-scraper-app-iqh0ws.streamlit.app/.
+
+
 ## License
 
 This project is licensed under the terms of the MIT license.
