@@ -6,4 +6,3 @@ pandas
 pyopenssl
 cryptography
 tqdm
-base64
