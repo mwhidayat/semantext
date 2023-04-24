@@ -4,6 +4,6 @@ beautifulsoup4
 newspaper3k
 pandas
 pyopenssl
-secrets
+cryptography
 tqdm
 base64

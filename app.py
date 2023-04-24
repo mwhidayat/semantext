@@ -4,7 +4,7 @@ import time
 from bs4 import BeautifulSoup
 from newspaper import Article
 import pandas as pd
-import secrets
+from cryptography.fernet import Fernet
 from tqdm import tqdm
 import base64
 
@@ -57,7 +57,8 @@ def scrape_articles(filtered_urls):
             title = a.title
             text = a.text
             
-            unique_identifier = secrets.token_hex(20)
+            key = Fernet.generate_key()
+            unique_identifier = base64.urlsafe_b64encode(key).rstrip(b'=').hex()[:16]
             
             row = {'Datetime':date,
                    'Title':title,
@@ -130,7 +131,8 @@ def app():
                 title = a.title
                 text = a.text
 
-                unique_identifier = secrets.token_hex(8)
+                key = Fernet.generate_key()
+                unique_identifier = base64.urlsafe_b64encode(key).rstrip(b'=').hex()[:16]
 
                 row = {'Datetime': date,
                        'Title': title,
