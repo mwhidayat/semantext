@@ -3,6 +3,7 @@ requests
 beautifulsoup4
 newspaper3k
 pandas
+pyOpenSSL
 secrets
 tqdm
 base64
