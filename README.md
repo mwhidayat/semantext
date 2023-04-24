@@ -32,7 +32,7 @@ The Indonesian News Article Scraper is a Python web scraping application that is
 
 ## Demo
 
-You can play around with the demo here: https://mwhidayat-indonesian-news-scraper-app-iqh0ws.streamlit.app/.
+You can play around with the demo here: https://mwhidayat-indonesian-news-scraper-app-2x53nz.streamlit.app/
 
 
 ## License
