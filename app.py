@@ -116,7 +116,7 @@ def app():
     # Filter URLs
     with st.spinner("Filtering URLs..."):
         filtered_urls = filter_links(urls, publisher)
-    st.success(f"Tagging URLs are found and removed. Filtering down to {len(filtered_urls)} articles and dropping results with NaN or null values.")
+    st.success(f"If any tagging URLs and rows with null values are found, they will be removed.")
     
     # Scrape articles
     rows = []
