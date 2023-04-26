@@ -26,9 +26,8 @@ The Indonesian News Article Scraper is a Python web scraping application that is
 4. Select the publisher's domain where you want to search for news from the available options in the radio button.
 5. (Optional) Enter the start and end date in the provided text input boxes to scrape articles within a specific date range. The format should be in yyyy-mm-dd.
 6. Enter the number of pages to scrape in the text input box provided. Each page usually contains 10 articles.
-7. Click the "Submit" button to start the scraping process.
-8. Once the scraping process is complete, the resulting dataframe containing information on the publication date, title, text, URL, and publication name will be displayed.
-9. If you wish to download the data as a CSV, click on the "Export to CSV" button located below the resulting dataframe.
+7. Once the scraping process is complete, the resulting dataframe containing information on the publication date, title, text, URL, and publication name will be displayed.
+8. If you wish to download the data as a CSV, click on the "Export to CSV" button located below the resulting dataframe.
 
 ## Demo
 

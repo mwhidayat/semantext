@@ -163,11 +163,16 @@ def app():
         for i in range(100):
             time.sleep(0.01)
             progress_bar.progress(i+1)
-    
+
+    # Replace line breaks with spaces
+    if 'Text' in df.columns:
+        df['Text'] = df['Text'].str.replace('\n', '  ')
+
     # Show dataframe
     st.write(df)
     st.markdown(download_csv(df), unsafe_allow_html=True)
 
+    # Add a footer with your name
     with st.container():
         st.markdown("---")
         st.markdown("Developed by [MW Hidayat](https://twitter.com/casecrit)")
