@@ -7,3 +7,4 @@ pyopenssl
 cryptography
 tqdm
 stanza
+plotly
