@@ -6,3 +6,4 @@ pandas
 pyopenssl
 cryptography
 tqdm
+stanza
