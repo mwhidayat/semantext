@@ -7,6 +7,9 @@ The Indonesian News Article Scraper is a Python web scraping application that is
 * Retrieval of news article data from a number of popular Indonesian publishers
 * Filtering of search results by date range (start and end dates)
 * Export of data to CSV format for further analysis
+* Collocation extraction
+* Most frequent words plot and wordcloud
+* Key Word in Context / Concordance
 
 ## System Requirements
 
