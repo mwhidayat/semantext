@@ -1,4 +1,4 @@
-## Indonesian News Article Scraper
+## SemanText
 
 SemanText is an Indonesian corpus linguistic tool developed using the Streamlit framework. It provides a wide range of features specifically designed to facilitate the analysis of news articles from popular Indonesian news publishers. With SemanText, you can easily retrieve news articles based on your queries, specify the desired number of pages to scrape, and conduct corpus linguistic analysis using its built-in features.
 
