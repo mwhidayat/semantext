@@ -1,6 +1,6 @@
 ## Indonesian News Article Scraper
 
-The Indonesian News Article Scraper is a Python web scraping application that is built using the Streamlit framework, and is designed to retrieve news articles from a variety of Indonesian news publishers. The app uses Google Search as the primary search mechanism, and searches for news articles that are related to the user's query string. The user can specify the number of pages they want to scrape, and also provide optional start and end dates to filter results by date range.
+SemanText is an Indonesian corpus linguistic tool developed using the Streamlit framework. It provides a wide range of features specifically designed to facilitate the analysis of news articles from popular Indonesian news publishers. With SemanText, you can easily retrieve news articles based on your queries, specify the desired number of pages to scrape, and conduct corpus linguistic analysis using its built-in features.
 
 ## Features
 
