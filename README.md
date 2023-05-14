@@ -4,12 +4,17 @@ SemanText is an Indonesian corpus linguistic tool developed using the Streamlit 
 
 ## Features
 
-* Retrieval of news article data from a number of popular Indonesian publishers
-* Filtering of search results by date range (start and end dates)
-* Export of data to CSV format for further analysis
-* Collocation extraction
-* Most frequent words plot and wordcloud
-* Key Word in Context / Concordance
+- [x] Scraper - Filtering of search results by date range (start and end dates)
+- [x] Scraper - Random delay
+- [x] Multiple CSV files
+- [x] Most frequent words
+- [x] Word cloud
+- [x] Collocation extraction - Frequency
+- [x] Key Word in Context / Concordance
+- [x] Export of data to CSV format for further analysis
+- [ ] Scraper - Rotating Proxy
+- [ ] Collocation extraction - Pointwise Mutual Information
+- [ ] Collocation extraction - Based on certain key word
 
 ## System Requirements
 
