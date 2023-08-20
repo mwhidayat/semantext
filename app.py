@@ -20,34 +20,25 @@ from text_analysis import display_concordance
 import random
 import time
 
-def get_urls_from_google(query, publisher, num_scrolls, start_date=None, end_date=None):
+def get_urls_from_google(query, publisher=None, num_pages=1):
     urls = []
-    query_string = f"{query} site:{publisher}"
-    if start_date:
-        query_string += f" after:{start_date}"
-    if end_date:
-        query_string += f" before:{end_date}"
-    url = f"https://www.google.co.id/search?q={query_string}"
+    query_string = f"{query}"
+    if publisher:
+        query_string += f" site:{publisher}"
+    url = f"https://www.google.com/search?q={query_string}"
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36"
     }
-    page = requests.get(url, headers=headers)
-    soup = BeautifulSoup(page.content, 'html.parser')
-    while num_scrolls:
-        results = soup.find_all("div", class_="g")
+
+    for page in range(num_pages):
+        page_url = url + f"&start={page * 10}"
+        page = requests.get(page_url, headers=headers)
+        soup = BeautifulSoup(page.content, 'html.parser')
+        results = soup.find_all("div", class_="yuRUbf")
         for result in results:
             link = result.find("a")["href"]
             urls.append(link)
-        try:
-            next_button = soup.find("a", {"id": "pnnext"})["href"]
-            url = f"https://www.google.co.id{next_button}"
-            page = requests.get(url, headers=headers)
-            soup = BeautifulSoup(page.content, 'html.parser')
-            delay = random.uniform(3, 9)  # Wait for a random time between 3 and 9 seconds
-            time.sleep(delay)
-        except:
-            break
-        num_scrolls -= 1
+
     return urls
 
 def filter_links(urls, publisher):
