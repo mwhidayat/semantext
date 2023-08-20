@@ -34,7 +34,7 @@ def get_urls_from_google(query, publisher=None, num_pages=1):
         page_url = url + f"&start={page * 10}"
         page = requests.get(page_url, headers=headers)
         soup = BeautifulSoup(page.content, 'html.parser')
-        results = soup.find_all("div", class_="yuRUbf")
+        results = soup.find_all("div", class_="MjjYud")
         for result in results:
             link = result.find("a")["href"]
             urls.append(link)
@@ -47,6 +47,8 @@ def filter_links(urls, publisher):
         if f"{publisher}/tag/" not in url and f"{publisher}/topic/" not in url:
             filtered_links.append(url)
     return filtered_links
+
+https://www.google.com/search?q={query_string}
 
 def scrape_articles(filtered_urls):
     rows = []
