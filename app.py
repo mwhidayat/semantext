@@ -20,6 +20,8 @@ from text_analysis import display_concordance
 import random
 import time
 
+
+"""
 def get_urls_from_google(query, publisher=None, num_pages=1):
     urls = []
     query_string = f"{query}"
@@ -49,6 +51,31 @@ def filter_links(urls, publisher):
     return filtered_links
 
 https://www.google.com/search?q={query_string}
+"""
+import requests
+from bs4 import BeautifulSoup
+
+def get_urls_from_file(file_path):
+    with open(file_path, 'r') as file:
+        urls = [url.strip() for url in file.read().split(',')]
+
+    return urls
+
+def filter_links(urls, publisher):
+    filtered_links = []
+    for url in urls:
+        if f"{publisher}/tag/" not in url and f"{publisher}/topic/" not in url:
+            filtered_links.append(url)
+    return filtered_links
+
+def main():
+    file_path = input("Enter the path to the text file containing URLs: ")
+    publisher = input("Enter the publisher: ")
+    urls = get_urls_from_file(file_path)
+    filtered_urls = filter_links(urls, publisher)
+    
+    for idx, url in enumerate(filtered_urls, start=1):
+        print(f"{idx}. {url}")
 
 def scrape_articles(filtered_urls):
     rows = []
