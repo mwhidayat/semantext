@@ -29,6 +29,7 @@ def app():
             st.stop()
             
         publisher_options = ['bisnis.com', 'cnbcindonesia.com', 'cnnindonesia.com', 'detik.com', 'inews.id', 'jpnn.com', 'kompas.com', 'liputan6.com',  'merdeka.com', 'okezone.com', 'suara.com', 'tribunnews.com']
+        publisher_options = ['bisnis.com', 'cnbcindonesia.com', 'cnnindonesia.com', 'detik.com', 'inews.id', 'jpnn.com', 'kompas.com', 'liputan6.com',  'merdeka.com', 'okezone.com', 'suara.com', 'tribunnews.com']
         publisher = st.radio("Select a publisher's domain:", publisher_options)
         if not publisher:
             st.stop()
@@ -319,6 +320,7 @@ def app():
             st.write(concordance_df)
 
 
+    # Footer
     # Footer
     with st.container():
         st.markdown("---")
