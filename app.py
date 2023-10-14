@@ -17,30 +17,35 @@ import matplotlib.pyplot as plt
 from text_analysis import stopwords_removal
 from text_analysis import extract_collocations
 from text_analysis import display_concordance
-import random
 import time
 
-
-"""
-def get_urls_from_google(query, publisher=None, num_pages=1):
+def get_urls_from_google(query, publisher, num_scrolls, start_date=None, end_date=None):
     urls = []
-    query_string = f"{query}"
-    if publisher:
-        query_string += f" site:{publisher}"
-    url = f"https://www.google.com/search?q={query_string}"
+    query_string = f"{query} site:{publisher}"
+    if start_date:
+        query_string += f" after:{start_date}"
+    if end_date:
+        query_string += f" before:{end_date}"
+    url = f"https://www.google.co.id/search?q={query_string}"
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36"
     }
-
-    for page in range(num_pages):
-        page_url = url + f"&start={page * 10}"
-        page = requests.get(page_url, headers=headers)
-        soup = BeautifulSoup(page.content, 'html.parser')
-        results = soup.find_all("div", class_="MjjYud")
+    page = requests.get(url, headers=headers)
+    soup = BeautifulSoup(page.content, 'html.parser')
+    while num_scrolls:
+        results = soup.find_all("div", class_="g")
         for result in results:
             link = result.find("a")["href"]
             urls.append(link)
-
+        try:
+            next_button = soup.find("a", {"id": "pnnext"})["href"]
+            url = f"https://www.google.co.id{next_button}"
+            page = requests.get(url, headers=headers)
+            soup = BeautifulSoup(page.content, 'html.parser')
+            time.sleep(5)  # Wait for new results to load
+        except:
+            break
+        num_scrolls -= 1
     return urls
 
 def filter_links(urls, publisher):
@@ -49,33 +54,6 @@ def filter_links(urls, publisher):
         if f"{publisher}/tag/" not in url and f"{publisher}/topic/" not in url:
             filtered_links.append(url)
     return filtered_links
-
-https://www.google.com/search?q={query_string}
-"""
-import requests
-from bs4 import BeautifulSoup
-
-def get_urls_from_file(file_path):
-    with open(file_path, 'r') as file:
-        urls = [url.strip() for url in file.read().split(',')]
-
-    return urls
-
-def filter_links(urls, publisher):
-    filtered_links = []
-    for url in urls:
-        if f"{publisher}/tag/" not in url and f"{publisher}/topic/" not in url:
-            filtered_links.append(url)
-    return filtered_links
-
-def main():
-    file_path = input("Enter the path to the text file containing URLs: ")
-    publisher = input("Enter the publisher: ")
-    urls = get_urls_from_file(file_path)
-    filtered_urls = filter_links(urls, publisher)
-    
-    for idx, url in enumerate(filtered_urls, start=1):
-        print(f"{idx}. {url}")
 
 def scrape_articles(filtered_urls):
     rows = []
@@ -129,7 +107,7 @@ def app():
         if not query:
             st.stop()
             
-        publisher_options = ['bisnis.com', 'cnbcindonesia.com', 'cnnindonesia.com', 'detik.com', 'kompas.com', 'liputan6.com',  'merdeka.com', 'okezone.com', 'suara.com', 'tribunnews.com']
+        publisher_options = ['bisnis.com', 'cnbcindonesia.com', 'cnnindonesia.com', 'detik.com', 'inews.id', 'jpnn.com', 'kompas.com', 'liputan6.com',  'merdeka.com', 'okezone.com', 'suara.com', 'tribunnews.com']
         publisher = st.radio("Select a publisher's domain:", publisher_options)
         if not publisher:
             st.stop()
@@ -420,7 +398,7 @@ def app():
             st.write(concordance_df)
 
 
-    # Add a footer with your name
+    # Footer
     with st.container():
         st.markdown("---")
         st.markdown("Developed by MW Hidayat. Find me on [Twitter](https://twitter.com/casecrit)")
