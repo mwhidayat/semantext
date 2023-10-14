@@ -32,22 +32,14 @@ def get_urls_from_google(query, publisher, num_results, start_date=None, end_dat
     
     # Find the search input field and enter the query
     search_input = driver.find_element("name", "q")
-    search_query = f"{query} site:{publisher}"
-    
-    if start_date:
-        search_query += f" after:{start_date}"
-    
-    if end_date:
-        search_query += f" before:{end_date}"
-    
-    search_input.send_keys(search_query)
+    search_input.send_keys(f"{query} site:{publisher}")
     search_input.send_keys(Keys.RETURN)
     
     urls = []
 
     while len(urls) < num_results:
         # Wait for the page to load
-        time.sleep(1.5)
+        time.sleep(3)
         
         # Find all search results links
         result_links = driver.find_elements("class name", "tF2Cxc")
@@ -57,26 +49,14 @@ def get_urls_from_google(query, publisher, num_results, start_date=None, end_dat
             url = link.find_element("tag name", "a").get_attribute("href")
             urls.append(url)
         
-        # Check if we've reached the desired number of results
-        if len(urls) >= num_results:
-            break
-        
         # Scroll down to load more results
         driver.execute_script("window.scrollTo(0, document.body.scrollHeight)")
-        
-        # Find the current page number
-        current_page = driver.find_element("css selector", "#navcnt td.cur").text
-        
-        # Build the URL for the next page
-        next_page_url = f"https://www.google.co.id/search?q={search_query}&start={int(current_page) * 10}"
-        
-        # Navigate to the next page
-        driver.get(next_page_url)
         
     # Close the WebDriver
     driver.quit()
     
     return urls
+
 
 def filter_links(urls, publisher):
     filtered_links = []
