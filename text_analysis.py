@@ -9,10 +9,14 @@ from tqdm import tqdm
 import time
 from typing import List
 
-# Load Indonesian stop words
-with open(r'stopwords.txt', 'r') as file:
-        stop_words = file.read().split('\n')
-        stop_words = set(stop_words)
+import os
+
+script_dir = os.path.dirname(os.path.abspath(__file__))
+stopwords_file_path = os.path.join(script_dir, 'stopwords.txt')
+
+with open(stopwords_file_path, 'r') as file:
+    stop_words = file.read().split('\n')
+    stop_words = set(stop_words)
 
 # Define a function to remove stop words
 def stopwords_removal(words):

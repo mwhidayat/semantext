@@ -1,121 +1,20 @@
-import streamlit as st
-import requests
-import time
-from bs4 import BeautifulSoup
-from newspaper import Article
-import pandas as pd
-from cryptography.fernet import Fernet
-from tqdm import tqdm
 import base64
-import streamlit as st
-import pandas as pd
-import string
-from text_analysis import plot_n_most_frequent_words
-import plotly.express as px
-from wordcloud import WordCloud
 import matplotlib.pyplot as plt
-from text_analysis import stopwords_removal
-from text_analysis import extract_collocations
-from text_analysis import display_concordance
+import pandas as pd
+import plotly.express as px
 import random
-import time
-
-
-"""
-def get_urls_from_google(query, publisher=None, num_pages=1):
-    urls = []
-    query_string = f"{query}"
-    if publisher:
-        query_string += f" site:{publisher}"
-    url = f"https://www.google.com/search?q={query_string}"
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36"
-    }
-
-    for page in range(num_pages):
-        page_url = url + f"&start={page * 10}"
-        page = requests.get(page_url, headers=headers)
-        soup = BeautifulSoup(page.content, 'html.parser')
-        results = soup.find_all("div", class_="MjjYud")
-        for result in results:
-            link = result.find("a")["href"]
-            urls.append(link)
-
-    return urls
-
-def filter_links(urls, publisher):
-    filtered_links = []
-    for url in urls:
-        if f"{publisher}/tag/" not in url and f"{publisher}/topic/" not in url:
-            filtered_links.append(url)
-    return filtered_links
-
-https://www.google.com/search?q={query_string}
-"""
 import requests
+import streamlit as st
+import string
+import time
 from bs4 import BeautifulSoup
-
-def get_urls_from_file(file_path):
-    with open(file_path, 'r') as file:
-        urls = [url.strip() for url in file.read().split(',')]
-
-    return urls
-
-def filter_links(urls, publisher):
-    filtered_links = []
-    for url in urls:
-        if f"{publisher}/tag/" not in url and f"{publisher}/topic/" not in url:
-            filtered_links.append(url)
-    return filtered_links
-
-def main():
-    file_path = input("Enter the path to the text file containing URLs: ")
-    publisher = input("Enter the publisher: ")
-    urls = get_urls_from_file(file_path)
-    filtered_urls = filter_links(urls, publisher)
-    
-    for idx, url in enumerate(filtered_urls, start=1):
-        print(f"{idx}. {url}")
-
-def scrape_articles(filtered_urls):
-    rows = []
-    for filtered_url in tqdm(filtered_urls):
-        try:
-            a = Article(filtered_url,language='id')
-            a.download()
-            a.parse()
-            
-            date = a.publish_date
-            title = a.title
-            text = a.text
-            
-            key = Fernet.generate_key()
-            unique_identifier = base64.urlsafe_b64encode(key).rstrip(b'=').hex()[:16]
-            
-            row = {'Datetime':date,
-                   'Title':title,
-                   'Text':text,
-                   'URL':filtered_url,
-                   'TextID': unique_identifier,
-                   'Publication': publisher}
-    
-            rows.append(row)
-        except Exception as e:
-            print(e)
-            row = {'Datetime':'N/A',
-                   'Title':'N/A',
-                   'Text':'N/A',
-                   'URL':filtered_url,
-                   'TextID': 'N/A',
-                   'Publication': publisher}               
-            
-            rows.append(row)      
-    df = pd.DataFrame(rows)
-    return df
-
-def load_data(file):
-    data = pd.read_csv(file, usecols=['Datetime', 'Title', 'Text', 'URL', 'TextID', "Publication"])
-    return data
+from cryptography.fernet import Fernet
+from newspaper import Article
+from tqdm import tqdm
+from selenium import webdriver
+from selenium.webdriver.common.keys import Keys
+from scraping import scrape_articles, get_urls_from_google, filter_links
+from text_analysis import plot_n_most_frequent_words, stopwords_removal, extract_collocations, display_concordance
 
 def app():
     st.title("SemanText")
@@ -129,7 +28,7 @@ def app():
         if not query:
             st.stop()
             
-        publisher_options = ['bisnis.com', 'cnbcindonesia.com', 'cnnindonesia.com', 'detik.com', 'kompas.com', 'liputan6.com',  'merdeka.com', 'okezone.com', 'suara.com', 'tribunnews.com']
+        publisher_options = ['bisnis.com', 'cnbcindonesia.com', 'cnnindonesia.com', 'detik.com', 'inews.id', 'jpnn.com', 'kompas.com', 'liputan6.com',  'merdeka.com', 'okezone.com', 'suara.com', 'tribunnews.com']
         publisher = st.radio("Select a publisher's domain:", publisher_options)
         if not publisher:
             st.stop()
@@ -420,7 +319,7 @@ def app():
             st.write(concordance_df)
 
 
-    # Add a footer with your name
+    # Footer
     with st.container():
         st.markdown("---")
         st.markdown("Developed by MW Hidayat. Find me on [Twitter](https://twitter.com/casecrit)")

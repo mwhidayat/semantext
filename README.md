@@ -39,7 +39,7 @@ SemanText is an Indonesian corpus linguistic tool developed using the Streamlit 
 
 ## Demo
 
-You can play around with the demo here: https://mwhidayat-indonesian-news-scraper-app-2x53nz.streamlit.app/
+You can play around with the demo here: https://semantext.streamlit.app/
 
 
 ## License
