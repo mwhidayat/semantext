@@ -9,3 +9,5 @@ tqdm
 stanza
 plotly
 wordcloud
+seleniumbase
+webdriver-manager
