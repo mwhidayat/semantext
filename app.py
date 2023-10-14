@@ -18,34 +18,64 @@ from text_analysis import stopwords_removal
 from text_analysis import extract_collocations
 from text_analysis import display_concordance
 import time
+from selenium import webdriver
+from selenium.webdriver.common.keys import Keys
 
-def get_urls_from_google(query, publisher, num_scrolls, start_date=None, end_date=None):
-    urls = []
-    query_string = f"{query} site:{publisher}"
+def get_urls_from_google(query, publisher, num_results, start_date=None, end_date=None):
+    # Set up the Selenium WebDriver
+    options = webdriver.ChromeOptions()
+    options.add_argument("--headless")  # Run the browser in headless mode (no GUI)
+    driver = webdriver.Chrome(options=options)
+    
+    # Navigate to Google
+    driver.get("https://www.google.co.id")
+    
+    # Find the search input field and enter the query
+    search_input = driver.find_element("name", "q")
+    search_query = f"{query} site:{publisher}"
+    
     if start_date:
-        query_string += f" after:{start_date}"
+        search_query += f" after:{start_date}"
+    
     if end_date:
-        query_string += f" before:{end_date}"
-    url = f"https://www.google.co.id/search?q={query_string}"
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36"
-    }
-    page = requests.get(url, headers=headers)
-    soup = BeautifulSoup(page.content, 'html.parser')
-    while num_scrolls:
-        results = soup.find_all("div", class_="g")
-        for result in results:
-            link = result.find("a")["href"]
-            urls.append(link)
-        try:
-            next_button = soup.find("a", {"id": "pnnext"})["href"]
-            url = f"https://www.google.co.id{next_button}"
-            page = requests.get(url, headers=headers)
-            soup = BeautifulSoup(page.content, 'html.parser')
-            time.sleep(5)  # Wait for new results to load
-        except:
+        search_query += f" before:{end_date}"
+    
+    search_input.send_keys(search_query)
+    search_input.send_keys(Keys.RETURN)
+    
+    urls = []
+
+    while len(urls) < num_results:
+        # Wait for the page to load
+        time.sleep(1.5)
+        
+        # Find all search results links
+        result_links = driver.find_elements("class name", "tF2Cxc")
+        
+        # Extract URLs from the links
+        for link in result_links:
+            url = link.find_element("tag name", "a").get_attribute("href")
+            urls.append(url)
+        
+        # Check if we've reached the desired number of results
+        if len(urls) >= num_results:
             break
-        num_scrolls -= 1
+        
+        # Scroll down to load more results
+        driver.execute_script("window.scrollTo(0, document.body.scrollHeight)")
+        
+        # Find the current page number
+        current_page = driver.find_element("css selector", "#navcnt td.cur").text
+        
+        # Build the URL for the next page
+        next_page_url = f"https://www.google.co.id/search?q={search_query}&start={int(current_page) * 10}"
+        
+        # Navigate to the next page
+        driver.get(next_page_url)
+        
+    # Close the WebDriver
+    driver.quit()
+    
     return urls
 
 def filter_links(urls, publisher):
