@@ -1,5 +1,4 @@
 import base64
-import matplotlib.pyplot as plt
 import pandas as pd
 import plotly.express as px
 import random
@@ -10,17 +9,18 @@ import time
 from bs4 import BeautifulSoup
 from cryptography.fernet import Fernet
 from newspaper import Article
-from tqdm import tqdm
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from scraping import scrape_articles, get_urls_from_google, filter_links
 from text_analysis import plot_n_most_frequent_words, stopwords_removal, extract_collocations, display_concordance
+from urlscraper import scrape_articles_from_urls
+import os
 
 def app():
     st.title("SemanText")
 
     # Features
-    option = st.sidebar.selectbox("Select a feature", ["Scraper", "Wordlist and Wordcloud", "Collocation", "Key Words in Context"])
+    option = st.sidebar.selectbox("Select a feature", ["URL Scraper", "Wordlist and Wordcloud", "Collocation", "Key Words in Context"])
     if option == "Scraper":
         st.markdown("---") 
         st.subheader("Scraper")       
@@ -319,8 +319,36 @@ def app():
                 concordance_df.at[index, 'KWIC'] = kwic
             st.write(concordance_df)
 
+    elif option == "URL Scraper":  # New section for URL scraping
+        st.markdown("---")
+        st.subheader("URL Scraper")
+        # Add a file uploader for the URL text file
+        uploaded_urls = st.file_uploader("Upload a text file with one URL per line", type=["txt"])
 
-    # Footer
+        # Trigger URL scraping when the button is clicked
+        if st.button("Scrape the URLs"):
+            if uploaded_urls is not None:
+                # Save the uploaded text file to a temporary location
+                with open("temp_url_file.txt", "wb") as temp_file:
+                    temp_file.write(uploaded_urls.read())
+
+                # Scrape articles from the URLs
+                scraped_df = scrape_articles_from_urls("temp_url_file.txt")
+
+                # Display the scraped data
+                st.write(scraped_df)
+
+                # Remove the temporary URL file
+                os.remove("temp_url_file.txt")
+
+                # Download the scraped articles
+                def download_corpus(scraped_df):
+                    csv = scraped_df.to_csv(index=False)
+                    b64 = base64.b64encode(csv.encode()).decode()
+                    href = f'<a href="data:file/csv;base64,{b64}" download="corpus-by-semantext.csv">Export to CSV</a>'
+                    return href
+                st.markdown(download_corpus(scraped_df), unsafe_allow_html=True)
+
     # Footer
     with st.container():
         st.markdown("---")
