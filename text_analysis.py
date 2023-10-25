@@ -1,4 +1,4 @@
-from collections import Counter
+import collections
 import pandas as pd
 import string
 import streamlit as st
@@ -88,6 +88,32 @@ def extract_collocations(corpus, progress):
     collocations_df.sort_values(by='frequency', ascending=False, inplace=True)
 
     return collocations_df
+
+# N-gram extraction without external libraries
+def extract_ngrams(corpus, n):
+    # Initialize an empty dictionary to store n-gram frequencies
+    ngram_counter = {}
+
+    # Iterate through the rows in the corpus
+    for index, row in tqdm(corpus.iterrows(), total=corpus.shape[0]):
+        text = row['Text']
+        words = text.split()
+
+        # Extract n-grams
+        for i in range(len(words) - n + 1):
+            ngram = " ".join(words[i:i + n])
+            if ngram in ngram_counter:
+                ngram_counter[ngram] += 1
+            else:
+                ngram_counter[ngram] = 1
+
+    # Convert the dictionary to a DataFrame with n-grams and frequencies
+    ngrams_df = pd.DataFrame({'ngram': list(ngram_counter.keys()), 'frequency': list(ngram_counter.values())})
+
+    # Sort by frequency in descending order
+    ngrams_df = ngrams_df.sort_values(by='frequency', ascending=False)
+
+    return ngrams_df
 
 # Create a function to generate Concordance - Key Words in Context
 def generate_concordance(text, keyword, context_size=50):

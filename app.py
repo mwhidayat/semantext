@@ -12,7 +12,7 @@ from newspaper import Article
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from scraping import scrape_articles, get_urls_from_google, filter_links
-from text_analysis import plot_n_most_frequent_words, stopwords_removal, extract_collocations, display_concordance
+from text_analysis import plot_n_most_frequent_words, stopwords_removal, extract_ngrams, extract_collocations, display_concordance
 from urlscraper import scrape_articles_from_urls
 import os
 
@@ -20,7 +20,7 @@ def app():
     st.title("SemanText")
 
     # Features
-    option = st.sidebar.selectbox("Select a feature", ["URL Scraper", "Wordlist and Wordcloud", "Collocation", "Key Words in Context"])
+    option = st.sidebar.selectbox("Select a feature", ["URL Scraper", "Most common words", "N-gram", "Rule-Based Collocation", "Key Words in Context"])
     if option == "Scraper":
         st.markdown("---") 
         st.subheader("Scraper")       
@@ -118,13 +118,13 @@ def app():
         def download_csv(df):
             csv = df.to_csv(index=False)
             b64 = base64.b64encode(csv.encode()).decode()
-            href = f'<a href="data:file/csv;base64,{b64}" download="corpus_{query}_{publisher}.csv">Export to CSV</a>'
+            href = f'<a href="data:file/csv;base64,{b64}" download="corpus_{query}_{publisher}_by_semantext.csv">Export to CSV</a>'
             return href
         st.markdown(download_csv(df), unsafe_allow_html=True)
 
-    elif option == "Wordlist and Wordcloud":
+    elif option == "Most common words":
         st.markdown("---")
-        st.subheader("Wordlist and Wordcloud")
+        st.subheader("Most common words")
         # Add a file uploader for the CSV files
         uploaded_files = st.file_uploader("Upload CSV files", accept_multiple_files=True, type=["csv"])
 
@@ -153,7 +153,7 @@ def app():
             st.write(corpus)
 
         # Create a table for the most frequent words
-        if 'corpus' in locals() and st.button("Show most frequent words"):
+        if 'corpus' in locals() and st.button("Display most frequent words"):
             n_words = st.text_input("Maximum words", "20")
             try:
                 n_most_common = int(n_words)
@@ -183,7 +183,7 @@ def app():
                 labels={'y': 'Word', 'x': 'Frequency'}
             )
             fig.update_layout(
-                title=f"Most frequent words",
+                title=f"Most common words",
                 xaxis_title="Frequency",
                 yaxis_title="Word",
                 autosize=False,
@@ -193,29 +193,10 @@ def app():
             st.plotly_chart(fig)
             st.set_option('deprecation.showPyplotGlobalUse', False)
 
-        # Generate the word cloud
-        if 'corpus' in locals() and st.button("Generate word cloud"):
-            # Filter out any empty or NaN values from the corpus
-            corpus = corpus.dropna(subset=['Text'])
-            corpus = corpus[corpus['Text'] != '']
 
-            # Remove stop words and punctuation from the corpus
-            corpus['Text'] = corpus['Text'].apply(lambda x: stopwords_removal([word.translate(str.maketrans('', '', string.punctuation)).replace("'", "") for word in x.lower().split()]))
-            text = " ".join(corpus["Text"].astype(str).tolist()).lower()
-
-            # Generate the word cloud
-            wordcloud = WordCloud(width=800, height=400, background_color="white").generate(text.replace("'", ""))
-
-            # Display the word cloud
-            plt.figure(figsize=(10, 5))
-            plt.imshow(wordcloud, interpolation='bilinear')
-            plt.axis("off")
-            st.pyplot()
-            st.set_option('deprecation.showPyplotGlobalUse', False)
-
-    elif option == "Collocation":
+    elif option == "Rule-Based Collocation":
         st.markdown("---")
-        st.subheader("Collocation")
+        st.subheader("Rule-Based Collocation")
         # Add a file uploader for the CSV files
         uploaded_files = st.file_uploader("Upload CSV files", accept_multiple_files=True, type=["csv"])
 
@@ -247,7 +228,7 @@ def app():
         def download_csv(collocations_df):
             csv = collocations_df.to_csv(index=False)
             b64 = base64.b64encode(csv.encode()).decode()
-            href = f'<a href="data:file/csv;base64,{b64}" download="collocations.csv">Export to CSV</a>'
+            href = f'<a href="data:file/csv;base64,{b64}" download="collocations_by_semantext.csv">Export to CSV</a>'
             return href
 
 
@@ -274,6 +255,49 @@ def app():
                 st.write("Collocations with POS pattern 'VERB + NOUN':")
                 verb_noun_df = collocations_df[collocations_df['pos_pattern'] == 'VERB + NOUN']
                 st.dataframe(verb_noun_df)
+
+    elif option == "N-gram":
+        st.markdown("---")
+        st.subheader("N-gram")
+        n_value = st.number_input("Enter the value of 'n' for n-grams", min_value=2, step=1, value=2)
+
+        # Add a file uploader for the CSV files
+        uploaded_files = st.file_uploader("Upload CSV files", accept_multiple_files=True, type=["csv"])
+
+        # Merge the uploaded CSV files into a single DataFrame
+        if uploaded_files:
+            corpus = pd.DataFrame()  # Initialize an empty DataFrame to hold the merged corpus
+            total_words = 0  # Initialize a variable to hold the total number of words
+            for file in uploaded_files:
+                file.seek(0)  # Reset the file pointer to the beginning of the file
+                data = pd.read_csv(file)
+                corpus = pd.concat([corpus, data], ignore_index=True)
+                total_words += data["Text"].str.split().str.len().sum()  # Compute the number of words for the current file
+
+            # Display the total number of rows and words
+            st.write(f"Total articles: {len(corpus)}")
+            st.write(f"Total words: {total_words}")
+
+        # Extract n-grams
+        if 'corpus' in locals() and st.button("Extract n-grams"):
+            # Show a spinner while n-grams are being extracted
+            with st.spinner("Extracting n-grams..."):
+                ngrams_df = extract_ngrams(corpus, n=n_value)
+
+            # Hide the spinner and display the n-grams in a table
+            st.success("N-grams extracted!")
+            st.write(f"Top {n_value}-grams:")
+            st.dataframe(ngrams_df.head(50))
+
+            # Download the extracted n-grams
+            def download_ngram(ngrams_df):
+                csv = ngrams_df.to_csv(index=False)
+                b64 = base64.b64encode(csv.encode()).decode()
+                href = f'<a href="data:file/csv;base64,{b64}" download="n_gram_by_semantext.csv">Export to CSV</a>'
+                return href
+            st.markdown(download_ngram(ngrams_df), unsafe_allow_html=True)
+
+            st.markdown("---")
 
 
     elif option == "Key Words in Context":
@@ -345,7 +369,7 @@ def app():
                 def download_corpus(scraped_df):
                     csv = scraped_df.to_csv(index=False)
                     b64 = base64.b64encode(csv.encode()).decode()
-                    href = f'<a href="data:file/csv;base64,{b64}" download="corpus-by-semantext.csv">Export to CSV</a>'
+                    href = f'<a href="data:file/csv;base64,{b64}" download="corpus_by_semantext.csv">Export to CSV</a>'
                     return href
                 st.markdown(download_corpus(scraped_df), unsafe_allow_html=True)
 
