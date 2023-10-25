@@ -94,9 +94,16 @@ def extract_ngrams(corpus, n):
     # Initialize an empty dictionary to store n-gram frequencies
     ngram_counter = {}
 
+    # Create a translation table to remove punctuation
+    translator = str.maketrans('', '', string.punctuation)
+
     # Iterate through the rows in the corpus
     for index, row in tqdm(corpus.iterrows(), total=corpus.shape[0]):
         text = row['Text']
+        
+        # Remove punctuation
+        text = text.translate(translator)
+        
         words = text.split()
 
         # Extract n-grams
