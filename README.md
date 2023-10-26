@@ -4,14 +4,14 @@ SemanText is an Indonesian corpus linguistic tool developed using the Streamlit 
 
 ## Features
 
-- [x] Scraper - Filtering of search results by date range (start and end dates)
-- [x] Scraper - Random delay
+- [x] URL Scraper - Scraping articles based on a list of URLs saved in .txt file separated by line-break.
 - [x] Multiple CSV files
 - [x] Most frequent words
-- [x] Word cloud
+- [x] N-gram extraction - Frequency
 - [x] Collocation extraction - Frequency
 - [x] Key Word in Context / Concordance
 - [x] Export of data to CSV format for further analysis
+- [ ] Scraper - Scraping articles based on queries
 - [ ] Scraper - Rotating Proxy
 - [ ] Collocation extraction - Pointwise Mutual Information
 - [ ] Collocation extraction - Based on certain key word
@@ -25,17 +25,6 @@ SemanText is an Indonesian corpus linguistic tool developed using the Streamlit 
 
 1. Clone the repository to your local machine.
 2. Install the required dependencies by running the command `pip install -r requirements.txt`
-
-## Usage
-
-1. Navigate to the directory where the app is stored.
-2. Run the app by executing the command `streamlit run app.py`.
-3. In the app interface, enter a search query keyword or phrase in the text input box provided.
-4. Select the publisher's domain where you want to search for news from the available options in the radio button.
-5. (Optional) Enter the start and end date in the provided text input boxes to scrape articles within a specific date range. The format should be in yyyy-mm-dd.
-6. Enter the number of pages to scrape in the text input box provided. Each page usually contains 10 articles.
-7. Once the scraping process is complete, the resulting dataframe containing information on the publication date, title, text, URL, and publication name will be displayed.
-8. If you wish to download the data as a CSV, click on the "Export to CSV" button located below the resulting dataframe.
 
 ## Demo
 
