@@ -6,6 +6,7 @@ import requests
 import streamlit as st
 import string
 import time
+from collections import Counter
 from bs4 import BeautifulSoup
 from cryptography.fernet import Fernet
 from newspaper import Article

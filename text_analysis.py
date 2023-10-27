@@ -5,11 +5,11 @@ import streamlit as st
 import re
 import stanza
 import pandas as pd
-from tqdm import tqdm
-import time
-from typing import List
-
 import os
+import time
+from tqdm import tqdm
+from typing import List
+from collections import Counter
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 stopwords_file_path = os.path.join(script_dir, 'stopwords.txt')
