@@ -10,7 +10,7 @@ import time
 from bs4 import BeautifulSoup
 from cryptography.fernet import Fernet
 from newspaper import Article
-from tqdm import tqdm
+import tqdm
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 

@@ -21,7 +21,8 @@ def app():
     st.title("SemanText")
 
     # Features
-    option = st.sidebar.selectbox("Select a feature", ["URL Scraper", "Most common words", "N-gram", "Rule-Based Collocation", "Key Words in Context"])
+    option = st.sidebar.selectbox("Select a feature", ["URL Scraper", "Most common words", "N-gram", 
+                                                       "Rule-Based Collocation", "Key Words in Context", "Create Dictionary Entry"])
     if option == "Scraper":
         st.markdown("---") 
         st.subheader("Scraper")       
@@ -373,6 +374,66 @@ def app():
                     href = f'<a href="data:file/csv;base64,{b64}" download="corpus_by_semantext.csv">Export to CSV</a>'
                     return href
                 st.markdown(download_corpus(scraped_df), unsafe_allow_html=True)
+
+    elif option == "Create Dictionary Entry":
+        st.subheader("Create Dictionary Entry")
+
+        word = st.text_input("Word")
+        
+        # Lists to store three part-of-speech, definition, and usage sections
+        part_of_speech_list = []
+        definition_list = []
+        usage_list = []
+
+        # Styling options
+        bold_word = st.checkbox("Bold Word", value=True)  # Set the default value to True
+
+        # Generate a single HTML string for the dictionary entry
+        entry = '<span style="white-space: nowrap;">'
+
+        if word:
+            entry += f'<p style="font-weight: bold;">{word}</p>' if bold_word else f'<p>{word}</p>'
+
+        # Allow users to add three part-of-speech, definition, and usage sections
+        for i in range(3):  # Allow three sections
+            part_of_speech = st.text_input(f"Part of Speech {i+1}")
+            definition = st.text_input(f"Definition {i+1}")
+            usage = st.text_input(f"Usage {i+1}")
+
+            # Add the sections to the lists
+            part_of_speech_list.append(part_of_speech)
+            definition_list.append(definition)
+            usage_list.append(usage)
+
+        # Iterate through the sections and add them to the HTML entry
+        for i in range(3):  # Iterate through the sections
+            part_of_speech = part_of_speech_list[i]
+            definition = definition_list[i]
+            usage = usage_list[i]
+
+            if part_of_speech or definition or usage:
+                entry += '<p>'  # Start a new line for each set
+
+                if part_of_speech:
+                    entry += f'<i>{part_of_speech} </i>'
+
+                if definition:
+                    entry += f'<span style="color: #333333;">{definition}; ;</span>'
+
+                if usage:
+                    entry += f'<span style="color: #666666;">{usage}</span>'
+
+                entry += '</p>'  # End the line for each set
+
+        entry += '</span>'
+
+        # Display the generated HTML entry on the same line
+        st.markdown(entry, unsafe_allow_html=True)
+
+        # Download HTML entry as a file
+        if st.button("Download Entry as HTML"):
+            download_link = f'<a href="data:text/html;base64,{base64.b64encode(entry.encode()).decode()}" download="dictionary_entry.html">Download Entry</a>'
+            st.markdown(download_link, unsafe_allow_html=True)
 
     # Footer
     with st.container():
