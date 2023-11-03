@@ -345,7 +345,9 @@ def app():
                 concordance_df.at[index, 'KWIC'] = kwic
             st.write(concordance_df)
 
-    elif option == "URL Scraper":  # New section for URL scraping
+    
+    # Article scraping from URLs
+    elif option == "URL Scraper": 
         st.markdown("---")
         st.subheader("URL Scraper")
         # Add a file uploader for the URL text file
@@ -418,7 +420,7 @@ def app():
                     entry += f'<i>{part_of_speech} </i>'
 
                 if definition:
-                    entry += f'<span style="color: #333333;">{definition}; ;</span>'
+                    entry += f'<span style="color: #333333;">{definition} ;</span>'
 
                 if usage:
                     entry += f'<span style="color: #666666;">{usage}</span>'
