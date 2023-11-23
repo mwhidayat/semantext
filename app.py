@@ -14,7 +14,7 @@ from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from scraping import scrape_articles, get_urls_from_google, filter_links
 from text_analysis import plot_n_most_frequent_words, stopwords_removal, extract_ngrams, extract_collocations, display_concordance
-from urlscraper import scrape_articles_from_urls
+from urlscraper import scrape_articles_from_urls_with_progress
 import os
 
 def app():
@@ -350,32 +350,32 @@ def app():
     elif option == "URL Scraper": 
         st.markdown("---")
         st.subheader("URL Scraper")
-        # Add a file uploader for the URL text file
         uploaded_urls = st.file_uploader("Upload a text file with one URL per line", type=["txt"])
 
-        # Trigger URL scraping when the button is clicked
         if st.button("Scrape the URLs"):
             if uploaded_urls is not None:
-                # Save the uploaded text file to a temporary location
-                with open("temp_url_file.txt", "wb") as temp_file:
-                    temp_file.write(uploaded_urls.read())
+                with st.spinner("Scraping in progress..."):
+                    with open("temp_url_file.txt", "wb") as temp_file:
+                        temp_file.write(uploaded_urls.read())
 
-                # Scrape articles from the URLs
-                scraped_df = scrape_articles_from_urls("temp_url_file.txt")
+                    # Scrape articles from the URLs with progress
+                    scraped_df = scrape_articles_from_urls_with_progress("temp_url_file.txt")
 
-                # Display the scraped data
-                st.write(scraped_df)
+                    st.success("Scraping complete!")
 
-                # Remove the temporary URL file
-                os.remove("temp_url_file.txt")
+                    # Display the scraped data
+                    st.write(scraped_df)
 
-                # Download the scraped articles
-                def download_corpus(scraped_df):
-                    csv = scraped_df.to_csv(index=False)
-                    b64 = base64.b64encode(csv.encode()).decode()
-                    href = f'<a href="data:file/csv;base64,{b64}" download="corpus_by_semantext.csv">Export to CSV</a>'
-                    return href
-                st.markdown(download_corpus(scraped_df), unsafe_allow_html=True)
+                    # Remove the temporary URL file
+                    os.remove("temp_url_file.txt")
+
+                    # Download the scraped articles
+                    def download_corpus(scraped_df):
+                        csv = scraped_df.to_csv(index=False)
+                        b64 = base64.b64encode(csv.encode()).decode()
+                        href = f'<a href="data:file/csv;base64,{b64}" download="corpus_by_semantext.csv">Export to CSV</a>'
+                        return href
+                    st.markdown(download_corpus(scraped_df), unsafe_allow_html=True)
 
     elif option == "Create Dictionary Entry":
         st.subheader("Create Dictionary Entry")
