@@ -22,107 +22,41 @@ def app():
 
     # Features
     option = st.sidebar.selectbox("Select a feature", ["URL Scraper", "Most common words", "N-gram", 
-                                                       "Rule-Based Collocation", "Key Words in Context", "Create Dictionary Entry"])
-    if option == "Scraper":
-        st.markdown("---") 
-        st.subheader("Scraper")       
-        query = st.text_input("Enter your search query:")
-        if not query:
-            st.stop()
-            
-        publisher_options = ['bisnis.com', 'cnbcindonesia.com', 'cnnindonesia.com', 'detik.com', 'inews.id', 'jpnn.com', 'kompas.com', 'liputan6.com',  'merdeka.com', 'okezone.com', 'suara.com', 'tribunnews.com']
-        publisher_options = ['bisnis.com', 'cnbcindonesia.com', 'cnnindonesia.com', 'detik.com', 'inews.id', 'jpnn.com', 'kompas.com', 'liputan6.com',  'merdeka.com', 'okezone.com', 'suara.com', 'tribunnews.com']
-        publisher = st.radio("Select a publisher's domain:", publisher_options)
-        if not publisher:
-            st.stop()
-        
-        start_date = st.text_input("Enter the start date (yyyy-mm-dd) (optional):")
-        end_date = st.text_input("Enter the end date (yyyy-mm-dd) (optional):")
-        
-        num_scrolls = st.text_input("Enter the number of pages to scrape (each page usually contains 10 articles):")
-        if not num_scrolls:
-            st.stop()
-        num_scrolls = int(num_scrolls)
-        
-        # Get the URLs from Google search
-        with st.spinner("Getting search results..."):
-            urls = get_urls_from_google(query, publisher, num_scrolls, start_date, end_date)
-        st.success(f"{len(urls)} URLs for '{query}' from '{publisher}' are found.")
-        
-        # Filter URLs
-        with st.spinner("Filtering URLs..."):
-            filtered_urls = filter_links(urls, publisher)
-        st.success(f"If any tagging URLs and rows with null values are found, they will be removed.")
-        
-        # Scrape articles
-        rows = []
-        start_time = time.time()
-        with st.spinner("Scraping articles..."):
-            for filtered_url in tqdm(filtered_urls):
-                try:
-                    a = Article(filtered_url, language='id')
-                    a.download()
-                    a.parse()
+                                                       "Rule-Based Collocation", "Key Words in Context"])
 
-                    date = a.publish_date
-                    title = a.title
-                    text = a.text
+    # Article scraping from URLs
+    if option == "URL Scraper": 
+        st.markdown("---")
+        st.subheader("URL Scraper")
+        uploaded_urls = st.file_uploader("Upload a text file with one URL per line", type=["txt"])
 
-                    key = Fernet.generate_key()
-                    unique_identifier = base64.urlsafe_b64encode(key).rstrip(b'=').hex()[:16]
+        if st.button("Scrape the URLs"):
+            if uploaded_urls is not None:
+                with st.spinner("Scraping in progress..."):
+                    with open("temp_url_file.txt", "wb") as temp_file:
+                        temp_file.write(uploaded_urls.read())
 
-                    row = {'Datetime': date,
-                        'Title': title,
-                        'Text': text,
-                        'URL': filtered_url,
-                        'TextID': unique_identifier,
-                        'Publication': publisher}
+                    # Scrape articles from the URLs with progress
+                    scraped_df = scrape_articles_from_urls_with_progress("temp_url_file.txt")
 
-                    rows.append(row)
-                except Exception as e:
-                    print(e)
-                    row = {'Datetime': 'N/A',
-                        'Title': 'N/A',
-                        'Text': 'N/A',
-                        'URL': filtered_url,
-                        'TextID': 'N/A',
-                        'Publication': publisher}
+                    st.success("Scraping complete!")
 
-                    rows.append(row)
-        end_time = time.time()
-        duration = round(end_time - start_time, 2)
-        print(f"Scraping {len(rows)} articles took {duration} seconds.")
-        
-        df = pd.DataFrame(rows)
-        
-        # drop the rows with N/A, NaN, null or None
-        df = df[~df.isin(['N/A']).any(axis=1)]
-        df.dropna(inplace=True)
-        
-        # Add progress bar
-        with st.spinner("Processing data..."):
-            progress_bar = st.progress(0)
-            for i in range(100):
-                time.sleep(0.01)
-                progress_bar.progress(i+1)
+                    # Display the scraped data
+                    st.write(scraped_df)
 
-        # Replace line breaks with spaces
-        if 'Text' in df.columns:
-            df['Text'] = df['Text'].str.replace('\n', '  ')
+                    # Remove the temporary URL file
+                    os.remove("temp_url_file.txt")
 
-        # Show dataframe
-        st.write(df)
+                    # Download the scraped articles
+                    def download_corpus(scraped_df):
+                        csv = scraped_df.to_csv(index=False)
+                        b64 = base64.b64encode(csv.encode()).decode()
+                        href = f'<a href="data:file/csv;base64,{b64}" download="corpus_by_semantext.csv">Export to CSV</a>'
+                        return href
+                    st.markdown(download_corpus(scraped_df), unsafe_allow_html=True)
+                    
+                    st.markdown("---")
 
-        # Show scraping duration
-        st.success(f"Scraping {len(rows)} articles took {duration} seconds.")
-
-        # Download the scraped articles
-        def download_csv(df):
-            csv = df.to_csv(index=False)
-            b64 = base64.b64encode(csv.encode()).decode()
-            href = f'<a href="data:file/csv;base64,{b64}" download="corpus_{query}_{publisher}_by_semantext.csv">Export to CSV</a>'
-            return href
-        st.markdown(download_csv(df), unsafe_allow_html=True)
 
     elif option == "Most common words":
         st.markdown("---")
@@ -147,7 +81,7 @@ def app():
             
             # Display an overview of the number of rows per value of the Publication column
             publication_counts = corpus["Publication"].value_counts().to_frame().reset_index()
-            publication_counts.columns = ["Publication", "Count"] # Rename the columnsz
+            publication_counts.columns = ["Publication", "Count"] 
             st.write("Articles by Publication:")
             st.table(publication_counts)
             st.markdown("---")
@@ -156,7 +90,7 @@ def app():
 
         # Create a table for the most frequent words
         if 'corpus' in locals() and st.button("Display most frequent words"):
-            n_words = st.text_input("Maximum words", "20")
+            n_words = st.text_input("Maximum words", "30")
             try:
                 n_most_common = int(n_words)
             except ValueError:
@@ -173,8 +107,19 @@ def app():
             words_freq["Word"] = words_freq["Word"].str.replace("'", "").str.replace(",", "")
             # Remove the row that contains an empty string in the Word column
             words_freq = words_freq[words_freq["Word"] != ""]
+            words_freq = words_freq.sort_values(by="Frequency", ascending=False)
             st.table(words_freq)
             st.set_option('deprecation.showPyplotGlobalUse', False)
+
+            # Download the most frequent words
+            def download_mostfrequentwords(words_freq):
+                csv = words_freq.to_csv(index=False)
+                b64 = base64.b64encode(csv.encode()).decode()
+                href = f'<a href="data:file/csv;base64,{b64}" download="mostcommonwords_by_semantext.csv">Export to CSV</a>'
+                return href
+            st.markdown(download_mostfrequentwords(words_freq), unsafe_allow_html=True)
+
+            st.markdown("---")
 
             # Create a horizontal bar chart using Plotly
             fig = px.bar(
@@ -219,7 +164,7 @@ def app():
             
             # Display an overview of the number of rows per value of the Publication column
             publication_counts = corpus["Publication"].value_counts().to_frame().reset_index()
-            publication_counts.columns = ["Publication", "Count"] # Rename the columns
+            publication_counts.columns = ["Publication", "Count"] 
             st.write("Articles by Publication:")
             st.table(publication_counts)
             st.markdown("---")
@@ -227,11 +172,13 @@ def app():
             st.write(corpus)
 
         # Save collocations as CSV
-        def download_csv(collocations_df):
+        def download_collocations(collocations_df):
             csv = collocations_df.to_csv(index=False)
             b64 = base64.b64encode(csv.encode()).decode()
             href = f'<a href="data:file/csv;base64,{b64}" download="collocations_by_semantext.csv">Export to CSV</a>'
             return href
+
+        st.markdown("---")        
 
 
         # Extract the possible collocations
@@ -244,7 +191,7 @@ def app():
                 st.success("Collocations extracted!")
                 st.write("Top collocations:")
                 st.dataframe(collocations_df.head(50))
-                st.markdown(download_csv(collocations_df), unsafe_allow_html=True)
+                st.markdown(download_collocations(collocations_df), unsafe_allow_html=True)
 
                 st.markdown("---")
 
@@ -325,7 +272,7 @@ def app():
             
             # Display an overview of the number of rows per value of the Publication column
             publication_counts = corpus["Publication"].value_counts().to_frame().reset_index()
-            publication_counts.columns = ["Publication", "Count"] # Rename the columns
+            publication_counts.columns = ["Publication", "Count"] 
             st.write("Articles by Publication:")
             st.table(publication_counts)
             st.markdown("---")
@@ -344,99 +291,7 @@ def app():
                 kwic = row['KWIC'].replace(keyword, keyword)
                 concordance_df.at[index, 'KWIC'] = kwic
             st.write(concordance_df)
-
     
-    # Article scraping from URLs
-    elif option == "URL Scraper": 
-        st.markdown("---")
-        st.subheader("URL Scraper")
-        uploaded_urls = st.file_uploader("Upload a text file with one URL per line", type=["txt"])
-
-        if st.button("Scrape the URLs"):
-            if uploaded_urls is not None:
-                with st.spinner("Scraping in progress..."):
-                    with open("temp_url_file.txt", "wb") as temp_file:
-                        temp_file.write(uploaded_urls.read())
-
-                    # Scrape articles from the URLs with progress
-                    scraped_df = scrape_articles_from_urls_with_progress("temp_url_file.txt")
-
-                    st.success("Scraping complete!")
-
-                    # Display the scraped data
-                    st.write(scraped_df)
-
-                    # Remove the temporary URL file
-                    os.remove("temp_url_file.txt")
-
-                    # Download the scraped articles
-                    def download_corpus(scraped_df):
-                        csv = scraped_df.to_csv(index=False)
-                        b64 = base64.b64encode(csv.encode()).decode()
-                        href = f'<a href="data:file/csv;base64,{b64}" download="corpus_by_semantext.csv">Export to CSV</a>'
-                        return href
-                    st.markdown(download_corpus(scraped_df), unsafe_allow_html=True)
-
-    elif option == "Create Dictionary Entry":
-        st.subheader("Create Dictionary Entry")
-
-        word = st.text_input("Word")
-        
-        # Lists to store three part-of-speech, definition, and usage sections
-        part_of_speech_list = []
-        definition_list = []
-        usage_list = []
-
-        # Styling options
-        bold_word = st.checkbox("Bold Word", value=True)  # Set the default value to True
-
-        # Generate a single HTML string for the dictionary entry
-        entry = '<span style="white-space: nowrap;">'
-
-        if word:
-            entry += f'<p style="font-weight: bold;">{word}</p>' if bold_word else f'<p>{word}</p>'
-
-        # Allow users to add three part-of-speech, definition, and usage sections
-        for i in range(3):  # Allow three sections
-            part_of_speech = st.text_input(f"Part of Speech {i+1}")
-            definition = st.text_input(f"Definition {i+1}")
-            usage = st.text_input(f"Usage {i+1}")
-
-            # Add the sections to the lists
-            part_of_speech_list.append(part_of_speech)
-            definition_list.append(definition)
-            usage_list.append(usage)
-
-        # Iterate through the sections and add them to the HTML entry
-        for i in range(3):  # Iterate through the sections
-            part_of_speech = part_of_speech_list[i]
-            definition = definition_list[i]
-            usage = usage_list[i]
-
-            if part_of_speech or definition or usage:
-                entry += '<p>'  # Start a new line for each set
-
-                if part_of_speech:
-                    entry += f'<i>{part_of_speech} </i>'
-
-                if definition:
-                    entry += f'<span style="color: #333333;">{definition} ;</span>'
-
-                if usage:
-                    entry += f'<span style="color: #666666;">{usage}</span>'
-
-                entry += '</p>'  # End the line for each set
-
-        entry += '</span>'
-
-        # Display the generated HTML entry on the same line
-        st.markdown(entry, unsafe_allow_html=True)
-
-        # Download HTML entry as a file
-        if st.button("Download Entry as HTML"):
-            download_link = f'<a href="data:text/html;base64,{base64.b64encode(entry.encode()).decode()}" download="dictionary_entry.html">Download Entry</a>'
-            st.markdown(download_link, unsafe_allow_html=True)
-
     # Footer
     with st.container():
         st.markdown("---")
