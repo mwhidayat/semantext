@@ -2,8 +2,9 @@ import base64
 import pandas as pd
 import streamlit as st
 from newspaper import Article
-from cryptography.fernet import Fernet
+import uuid
 from tqdm import tqdm
+from urllib.parse import urlparse
 
 # Function to scrape articles from URLs with a progress bar
 def scrape_articles_from_urls_with_progress(url_file):
@@ -32,8 +33,10 @@ def scrape_articles_from_urls_with_progress(url_file):
             # Remove line breaks from the 'Text' column
             text = text.replace('\n', ' ')
 
-            key = Fernet.generate_key()
-            unique_identifier = base64.urlsafe_b64encode(key).rstrip(b'=').hex()[:16]
+            unique_identifier = str(uuid.uuid4())[:16]
+
+            # Extract only the root domain name from the URL
+            domain = urlparse(url).netloc.split('.')[-2] + '.' + urlparse(url).netloc.split('.')[-1]
 
             row = {
                 'Datetime': date,
@@ -41,7 +44,7 @@ def scrape_articles_from_urls_with_progress(url_file):
                 'Text': text,
                 'URL': url,
                 'TextID': unique_identifier,
-                'Publication': 'Online'
+                'Publication': domain
             }
 
             rows.append(row)
@@ -54,7 +57,7 @@ def scrape_articles_from_urls_with_progress(url_file):
                 'Text': 'N/A',
                 'URL': url,
                 'TextID': 'N/A',
-                'Publication': 'Online'
+                'Publication': 'N/A'
             }
 
             rows.append(row)
