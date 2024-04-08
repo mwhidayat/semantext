@@ -11,3 +11,4 @@ plotly
 wordcloud
 seleniumbase
 webdriver-manager
+lxml_html_clean
