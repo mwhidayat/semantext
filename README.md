@@ -2,7 +2,7 @@
 
 SemanText is a linguistic tool for the Indonesian corpus developed using the Streamlit framework. It is designed to simplify the analysis of news articles sourced from popular Indonesian news publishers. Whether you're a linguist, researcher, or language enthusiast, SemanText offers a suite of features tailored to enhance your exploration and understanding of textual data.
 
-## Key Features
+## Phase 1 (Done)
 
 - [x] **URL Scraper:** Effortlessly scrape articles by providing a list of URLs saved in a .txt file, each separated by a line break.
 - [x] **Multiple CSV Files:** Seamlessly manage and handle multiple CSV files for efficient data organization.
@@ -17,11 +17,17 @@ SemanText is a linguistic tool for the Indonesian corpus developed using the Str
 - [x] **Key Word in Context/Concordance:** Gain contextual understanding by exploring the occurrence of specific keywords within the corpus.
 - [x] **Export Data to CSV Format:** Easily export analyzed data to CSV format for further in-depth analysis.
 
-## Future Features (Work in Progress)
+## Phase 2 (To Do)
+
+- [ ] **Statistical Measures for Collocation Extraction:** Calculate and display statistical measures, such as Pointwise Mutual Information (PMI), to identify and interpret collocations better, instead of plain frequency.
+- [ ] **CONLL-U File Analysis:** Read and parse CONLL-U file, which are a standard format for representing linguistic annotations.
+- [ ] **Keyword-Based Collocation Extraction:** Extract collocations that include a certain keyword.
+
+## Phase 3 (Backlog)
 
 - [ ] **Scraper - Google Search:** Retrieve articles based on specific queries for Google Search.
-- [ ] **Statistical Measures for Collocation Extraction:** Explore collocations based on Pointwise Mutual Information for more nuanced insights.
-- [ ] **Keyword-Based Collocation Extraction:** Extract collocations based on specific keywords.
+- [ ] **Machine Learning - Topic Modelling:** Identify and group similar articles based on their content using unsupervised machine learning algorithms.
+
 
 ## System Requirements
 
