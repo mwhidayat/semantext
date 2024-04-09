@@ -21,14 +21,15 @@ def app():
     st.title("SemanText")
 
     # Features
-    option = st.sidebar.selectbox("Select a feature", ["URL Scraper", "Most common words", "N-gram", 
+    option = st.sidebar.selectbox("Select a feature", ["URL Scraper", "Most frequent words", "N-gram", 
                                                        "Rule-Based Collocation", "Key Words in Context"])
 
     # Article scraping from URLs
     if option == "URL Scraper": 
         st.markdown("---")
         st.subheader("URL Scraper")
-        uploaded_urls = st.file_uploader("Upload a text file with one URL per line", type=["txt"])
+        uploaded_urls = st.file_uploader("Upload a text file", type=["txt"], 
+                                         help="Upload a text file containing one URL per line without quote and separator.")
 
         if st.button("Scrape the URLs"):
             if uploaded_urls is not None:
@@ -44,9 +45,6 @@ def app():
                     # Display the scraped data
                     st.write(scraped_df)
 
-                    # Remove the temporary URL file
-                    os.remove("temp_url_file.txt")
-
                     # Download the scraped articles
                     def download_corpus(scraped_df):
                         csv = scraped_df.to_csv(index=False)
@@ -58,11 +56,12 @@ def app():
                     st.markdown("---")
 
 
-    elif option == "Most common words":
+    elif option == "Most frequent words":
         st.markdown("---")
-        st.subheader("Most common words")
+        st.subheader("Most frequent words")
         # Add a file uploader for the CSV files
-        uploaded_files = st.file_uploader("Upload CSV files", accept_multiple_files=True, type=["csv"])
+        uploaded_files = st.file_uploader("Upload a CSV file(s)", accept_multiple_files=True, type=["csv"], 
+                                          help="Upload CSV file which contain the scraped articles from the feature URL Scraper.")
 
         # Merge the uploaded CSV files into a single DataFrame
         if uploaded_files:
@@ -72,34 +71,35 @@ def app():
                 file.seek(0) # Reset the file pointer to the beginning of the file
                 data = pd.read_csv(file)
                 corpus = pd.concat([corpus, data], ignore_index=True)
-                total_words += data["Text"].str.split().str.len().sum() # Compute the number of words for the current file
+                total_words += sum(data["Text"].str.split().str.len()) # Compute the number of words for the current file
             
            
             # Display the total number of rows and words
+            st.subheader("Overview")
             st.write(f"Total articles: {len(corpus)}")
             st.write(f"Total words: {total_words}")
             
             # Display an overview of the number of rows per value of the Publication column
             publication_counts = corpus["Publication"].value_counts().to_frame().reset_index()
             publication_counts.columns = ["Publication", "Count"] 
-            st.write("Articles by Publication:")
+            st.write("Count of articles by Publication:")
             st.table(publication_counts)
             st.markdown("---")
-            st.markdown("Merged dataframe")
+            st.subheader("Merged corpus")
             st.write(corpus)
 
         # Create a table for the most frequent words
         if 'corpus' in locals() and st.button("Display most frequent words"):
-            n_words = st.text_input("Maximum words", "30")
+            n_words = st.text_input("Maximum words", "30", help="Enter the maximum number of words to display.")
             try:
-                n_most_common = int(n_words)
+                n_most_frequent = int(n_words)
             except ValueError:
                 st.write("Please enter a valid integer for the number of words.")
             
             # Remove stop words and punctuation from the corpus
             corpus['Text'] = corpus['Text'].apply(lambda x: stopwords_removal(x.lower().split()))
 
-            top_n_words = plot_n_most_frequent_words(corpus, "Text", n=n_most_common)
+            top_n_words = plot_n_most_frequent_words(corpus, "Text", n=n_most_frequent)
 
             # Create a table for the most frequent words
             words_freq = pd.DataFrame(top_n_words, columns=["Word", "Frequency"])
@@ -115,7 +115,7 @@ def app():
             def download_mostfrequentwords(words_freq):
                 csv = words_freq.to_csv(index=False)
                 b64 = base64.b64encode(csv.encode()).decode()
-                href = f'<a href="data:file/csv;base64,{b64}" download="mostcommonwords_by_semantext.csv">Export to CSV</a>'
+                href = f'<a href="data:file/csv;base64,{b64}" download="mostfrequentwords_by_semantext.csv">Export to CSV</a>'
                 return href
             st.markdown(download_mostfrequentwords(words_freq), unsafe_allow_html=True)
 
@@ -130,7 +130,7 @@ def app():
                 labels={'y': 'Word', 'x': 'Frequency'}
             )
             fig.update_layout(
-                title=f"Most common words",
+                title=f"Most frequent words",
                 xaxis_title="Frequency",
                 yaxis_title="Word",
                 autosize=False,
@@ -142,76 +142,79 @@ def app():
 
 
     elif option == "Rule-Based Collocation":
-        st.markdown("---")
-        st.subheader("Rule-Based Collocation")
-        # Add a file uploader for the CSV files
-        uploaded_files = st.file_uploader("Upload CSV files", accept_multiple_files=True, type=["csv"])
-
-        # Merge the uploaded CSV files into a single DataFrame
-        if uploaded_files:
-            corpus = pd.DataFrame() # Initialize an empty DataFrame to hold the merged corpus
-            total_words = 0 # Initialize a variable to hold the total number of words
-            for file in uploaded_files:
-                file.seek(0) # Reset the file pointer to the beginning of the file
-                data = pd.read_csv(file)
-                corpus = pd.concat([corpus, data], ignore_index=True)
-                total_words += data["Text"].str.split().str.len().sum() # Compute the number of words for the current file
-            
-           
-            # Display the total number of rows and words
-            st.write(f"Total articles: {len(corpus)}")
-            st.write(f"Total words: {total_words}")
-            
-            # Display an overview of the number of rows per value of the Publication column
-            publication_counts = corpus["Publication"].value_counts().to_frame().reset_index()
-            publication_counts.columns = ["Publication", "Count"] 
-            st.write("Articles by Publication:")
-            st.table(publication_counts)
             st.markdown("---")
-            st.markdown("Merged dataframe")
-            st.write(corpus)
+            st.subheader("Rule-Based Collocation")
+                # Add a file uploader for the CSV files
+            uploaded_files = st.file_uploader("Upload a CSV file(s)", accept_multiple_files=True, type=["csv"], 
+                                            help="Upload CSV file which contain the scraped articles from the feature URL Scraper.")
 
-        # Save collocations as CSV
-        def download_collocations(collocations_df):
-            csv = collocations_df.to_csv(index=False)
-            b64 = base64.b64encode(csv.encode()).decode()
-            href = f'<a href="data:file/csv;base64,{b64}" download="collocations_by_semantext.csv">Export to CSV</a>'
-            return href
-
-        st.markdown("---")        
-
-
-        # Extract the possible collocations
-        if 'corpus' in locals() and st.button("Extract collocations"):
-                # Show a spinner while the collocations are being extracted
-                with st.spinner("Extracting collocations..."):
-                    collocations_df = extract_collocations(corpus, st)
-
-                # Hide the spinner and display the top collocations and their frequencies in a table
-                st.success("Collocations extracted!")
-                st.write("Top collocations:")
-                st.dataframe(collocations_df.head(50))
-                st.markdown(download_collocations(collocations_df), unsafe_allow_html=True)
-
+            # Merge the uploaded CSV files into a single DataFrame
+            if uploaded_files:
+                corpus = pd.DataFrame() # Initialize an empty DataFrame to hold the merged corpus
+                total_words = 0 # Initialize a variable to hold the total number of words
+                for file in uploaded_files:
+                    file.seek(0) # Reset the file pointer to the beginning of the file
+                    data = pd.read_csv(file)
+                    corpus = pd.concat([corpus, data], ignore_index=True)
+                    total_words += sum(data["Text"].str.split().str.len()) # Compute the number of words for the current file
+                
+            
+                # Display the total number of rows and words
+                st.subheader("Overview")
+                st.write(f"Total articles: {len(corpus)}")
+                st.write(f"Total words: {total_words}")
+                
+                # Display an overview of the number of rows per value of the Publication column
+                publication_counts = corpus["Publication"].value_counts().to_frame().reset_index()
+                publication_counts.columns = ["Publication", "Count"] 
+                st.write("Count of articles by Publication:")
+                st.table(publication_counts)
                 st.markdown("---")
+                st.subheader("Merged corpus")
+                st.write(corpus)
 
-                st.write("Collocations with POS pattern 'NOUN + ADJ':")
-                noun_adj_df = collocations_df[collocations_df['pos_pattern'] == 'NOUN + ADJ']
-                st.dataframe(noun_adj_df)
-                st.write("Collocations with POS pattern 'NOUN + NOUN':")
-                noun_noun_df = collocations_df[collocations_df['pos_pattern'] == 'NOUN + NOUN']
-                st.dataframe(noun_noun_df)
-                st.write("Collocations with POS pattern 'VERB + NOUN':")
-                verb_noun_df = collocations_df[collocations_df['pos_pattern'] == 'VERB + NOUN']
-                st.dataframe(verb_noun_df)
+            # Save collocations as CSV
+            def download_collocations(collocations_df):
+                csv = collocations_df.to_csv(index=False)
+                b64 = base64.b64encode(csv.encode()).decode()
+                href = f'<a href="data:file/csv;base64,{b64}" download="collocations_by_semantext.csv">Export to CSV</a>'
+                return href
+
+            st.markdown("---")        
+
+
+            # Extract the possible collocations
+            if 'corpus' in locals() and st.button("Extract collocations"):
+                    # Show a spinner while the collocations are being extracted
+                    with st.spinner("Extracting collocations..."):
+                        collocations_df = extract_collocations(corpus, st)
+
+                    # Hide the spinner and display the top collocations and their frequencies in a table
+                    st.success("Collocations extracted!")
+                    st.subheader("Top collocations:")
+                    st.table(collocations_df.head(50))
+                    st.markdown(download_collocations(collocations_df), unsafe_allow_html=True)
+
+                    st.markdown("---")
+
+                    st.subheader("'NOUN + ADJ' Collocations:")
+                    noun_adj_df = collocations_df[collocations_df['pos_pattern'] == 'NOUN + ADJ']
+                    st.table(noun_adj_df)
+                    st.subheader("'NOUN + NOUN' Collocations:")
+                    noun_noun_df = collocations_df[collocations_df['pos_pattern'] == 'NOUN + NOUN']
+                    st.table(noun_noun_df)
+                    st.subheader("'VERB + NOUN' Collocations:")
+                    verb_noun_df = collocations_df[collocations_df['pos_pattern'] == 'VERB + NOUN']
+                    st.table(verb_noun_df)
 
     elif option == "N-gram":
         st.markdown("---")
         st.subheader("N-gram")
-        n_value = st.number_input("Enter the value of 'n' for n-grams", min_value=2, step=1, value=2)
+        n_value = st.number_input("Enter the value of 'n' for n-grams", min_value=2, step=1, value=2, help="Enter the value of 'n' for n-grams.")
 
         # Add a file uploader for the CSV files
-        uploaded_files = st.file_uploader("Upload CSV files", accept_multiple_files=True, type=["csv"])
+        uploaded_files = st.file_uploader("Upload a CSV file(s)", accept_multiple_files=True, type=["csv"], 
+                                          help="Upload CSV file which contain the scraped articles from the feature URL Scraper.")
 
         # Merge the uploaded CSV files into a single DataFrame
         if uploaded_files:
@@ -224,8 +227,18 @@ def app():
                 total_words += data["Text"].str.split().str.len().sum()  # Compute the number of words for the current file
 
             # Display the total number of rows and words
+            st.subheader("Overview")
             st.write(f"Total articles: {len(corpus)}")
             st.write(f"Total words: {total_words}")
+
+            # Display an overview of the number of rows per value of the Publication column
+            publication_counts = corpus["Publication"].value_counts().to_frame().reset_index()
+            publication_counts.columns = ["Publication", "Count"] 
+            st.write("Count of articles by Publication:")
+            st.table(publication_counts)
+            st.subheader("Merged corpus")
+            st.write(corpus)
+
 
         # Extract n-grams
         if 'corpus' in locals() and st.button("Extract n-grams"):
@@ -236,7 +249,7 @@ def app():
             # Hide the spinner and display the n-grams in a table
             st.success("N-grams extracted!")
             st.write(f"Top {n_value}-grams:")
-            st.dataframe(ngrams_df.head(50))
+            st.table(ngrams_df.head(50))
 
             # Download the extracted n-grams
             def download_ngram(ngrams_df):
@@ -253,7 +266,8 @@ def app():
         st.markdown("---")
         st.subheader("Key Words in Context")
         # Add a file uploader for the CSV files
-        uploaded_files = st.file_uploader("Upload CSV files", accept_multiple_files=True, type=["csv"])
+        uploaded_files = st.file_uploader("Upload a CSV file(s)", accept_multiple_files=True, type=["csv"], 
+                                          help="Upload CSV file which contain the scraped articles from the feature URL Scraper.")
 
         # Merge the uploaded CSV files into a single DataFrame
         if uploaded_files:
@@ -267,22 +281,24 @@ def app():
             
            
             # Display the total number of rows and words
+            st.subheader("Overview")
             st.write(f"Total articles: {len(corpus)}")
             st.write(f"Total words: {total_words}")
             
             # Display an overview of the number of rows per value of the Publication column
             publication_counts = corpus["Publication"].value_counts().to_frame().reset_index()
             publication_counts.columns = ["Publication", "Count"] 
-            st.write("Articles by Publication:")
+            st.write("Count of articles by Publication:")
             st.table(publication_counts)
             st.markdown("---")
-            st.markdown("Merged dataframe")
+            st.subheader("Merged corpus")
             st.write(corpus)
             st.markdown("---")
-            col = st.selectbox("Select a column to search:", options=data.columns)
+            st.subheader("Filter")
+            col = st.selectbox("Select a column to search:", options=data.columns, help="Select a column to search for keywords.")
 
         # Let the user choose the column to search and the keyword to search for
-        keyword = st.text_input("Enter a keyword to search for:")
+        keyword = st.text_input("Enter a keyword to search for:", help="Enter a keyword to search for.")
         
         # Generate and display the concordance
         if st.button("Generate Concordance"):
@@ -290,7 +306,8 @@ def app():
             for index, row in concordance_df.iterrows():
                 kwic = row['KWIC'].replace(keyword, keyword)
                 concordance_df.at[index, 'KWIC'] = kwic
-            st.write(concordance_df)
+            st.subheader("Concordance")
+            st.table(concordance_df)
     
     # Footer
     with st.container():
